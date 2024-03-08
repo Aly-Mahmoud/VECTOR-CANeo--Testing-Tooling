@@ -1,0 +1,90 @@
+﻿/*@!Encoding:65001*/
+includes
+{
+  
+}
+
+variables
+{
+  
+  const SYSTEM_AWAKE = 1;
+  const NO_OBSTACLE = 0;
+  const NO_FAULT = 0;
+  const SYSTEM_AWAKE_ACK = 1;
+  const FULLYOPEN        = 0;
+  const FULLYCLOSE       = 100;
+  mstimer Status_Timer;
+  char PWC_Window_Status = NO_FAULT;
+  char PWC_Obstacle_Status = NO_OBSTACLE;
+  char PWC_RWindow_Position = FULLYCLOSE;
+  char PWC_LWindow_Position = FULLYCLOSE;
+  const CONTROL_ON = 1;
+  const CONTROL_OFF = 0;
+
+}
+
+//what gets executed when power on
+on message BCM_NM_Message
+{
+  message BCM_NM_Message        Temp_BCM_NM;
+  
+  message PWC_Front_NM_Message  PWC_Awake;
+  message PWC_Front_Status      Temp_PWC_Status;
+  message PWC_Rear_Status       Temp_PWC2_Status;   // to be continued !!
+  
+  Temp_BCM_NM = this;
+  
+  if (Temp_BCM_NM.NM_Awake == SYSTEM_AWAKE)
+  {
+    PWC_Awake.NM_Awake_Ack = SYSTEM_AWAKE_ACK;
+    
+    Temp_PWC_Status.WindowLeft_ObstacleDetected = PWC_Obstacle_Status;
+    Temp_PWC_Status.WindowLeft_Position = PWC_RWindow_Position;
+    Temp_PWC_Status.WindowLeft_Status = PWC_Window_Status;
+    
+    Temp_PWC_Status.WindowRight_ObstacleDetected = PWC_Obstacle_Status;
+    Temp_PWC_Status.WindowRight_Position = PWC_LWindow_Position;
+    Temp_PWC_Status.WindowRight_Status = PWC_Window_Status;
+    
+    setTimer(Status_Timer,10);
+    output(Temp_PWC_Status);
+    output(PWC_Awake);
+  }
+}
+
+//status update every 10 ms
+on timer Status_Timer
+{
+    message PWC_Front_Status Temp_PWC_Status;
+  
+    Temp_PWC_Status.WindowLeft_ObstacleDetected = PWC_Obstacle_Status;
+    Temp_PWC_Status.WindowLeft_Position = PWC_RWindow_Position;
+    Temp_PWC_Status.WindowLeft_Status = PWC_Window_Status;
+    
+    Temp_PWC_Status.WindowRight_ObstacleDetected = PWC_Obstacle_Status;
+    Temp_PWC_Status.WindowRight_Position = PWC_LWindow_Position;
+    Temp_PWC_Status.WindowRight_Status = PWC_Window_Status;
+    
+    setTimer(Status_Timer,10);
+    output(Temp_PWC_Status);
+}
+
+on message BCM_PWC_Control 
+{
+  message BCM_PWC_Control Temp_Control;
+  Temp_Control = this;
+  
+  if(Temp_Control.DrvCtrl_Front_L_Down == CONTROL_ON && PWC_LWindow_Position != FULLYOPEN )
+  {
+    PWC_LWindow_Position--;
+  }
+  
+  else if (Temp_Control.DrvCtrl_Front_L_Down == CONTROL_ON && PWC_LWindow_Position == FULLYOPEN)
+  {
+    
+  }
+  else if(Temp_Control.DrvCtrl_Front_L_Auto == CONTROL_ON &&   )
+    
+
+  
+}

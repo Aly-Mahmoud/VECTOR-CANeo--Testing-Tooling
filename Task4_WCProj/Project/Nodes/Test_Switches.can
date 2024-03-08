@@ -1,0 +1,144 @@
+﻿/*@!Encoding:65001*/
+includes
+{
+  
+}
+
+variables
+{
+  const CHILD_LOCK_ON = 1;
+  const CHILD_LOCK_OFF = 0;
+  const CONTROL_ON = 1;
+  const CONTROL_OFF = 0;
+  msTimer 
+}
+
+on sysvar ControlSwitches::child_lock
+{
+  message ControlSwitches_Status Temp_Control;
+ if(@ControlSwitches::child_lock == CHILD_LOCK_ON) 
+ {
+   Temp_Control.ChildLock = CHILD_LOCK_ON;
+ }
+ else
+ {
+   Temp_Control.ChildLock = CHILD_LOCK_OFF;
+ }
+ output(Temp_Control);
+}
+
+on sysvar ControlSwitches::DrvCtrl_Front_L_Down
+{
+  message ControlSwitches_Status Temp_Control;
+ if(@ControlSwitches::DrvCtrl_Front_L_Down == CONTROL_ON) 
+ {
+   Temp_Control.DrvCtrl_Front_L_Down = CONTROL_ON;
+ }
+ else
+ {
+   Temp_Control.DrvCtrl_Front_L_Down = CONTROL_OFF;
+ }
+ output(Temp_Control);
+}
+
+on sysvar ControlSwitches::DrvCtrl_Front_L_UP
+{
+  message ControlSwitches_Status Temp_Control;
+ if(@ControlSwitches::DrvCtrl_Front_L_UP == CONTROL_ON) 
+ {
+   Temp_Control.DrvCtrl_Front_L_Up = CONTROL_ON;
+ }
+ else
+ {
+   Temp_Control.DrvCtrl_Front_L_Up = CONTROL_OFF;
+ }
+ output(Temp_Control);
+}
+
+on sysvar ControlSwitches::DrvCtrl_Front_R_Down
+{
+  message ControlSwitches_Status Temp_Control;
+ if(@ControlSwitches::DrvCtrl_Front_R_Down == CONTROL_ON) 
+ {
+   Temp_Control.DrvCtrl_Front_R_Down = CONTROL_ON;
+ }
+ else
+ {
+   Temp_Control.DrvCtrl_Front_R_Down = CONTROL_OFF;
+ }
+ output(Temp_Control);
+}
+
+on sysvar ControlSwitches::DrvCtrl_Front_R_UP
+{
+  message ControlSwitches_Status Temp_Control;
+ if(@ControlSwitches::DrvCtrl_Front_R_UP == CONTROL_ON) 
+ {
+   Temp_Control.DrvCtrl_Front_R_Up = CONTROL_ON;
+ }
+ else
+ {
+   Temp_Control.DrvCtrl_Front_R_Up = CONTROL_OFF;
+ }
+ output(Temp_Control);
+}
+
+on sysvar ControlSwitches::PassCtrl_Front_R_Down
+{
+  message ControlSwitches_Status Temp_Control;
+ if(@ControlSwitches::PassCtrl_Front_R_Down == CONTROL_ON
+  && @ControlSwitches::child_lock == CHILD_LOCK_OFF) 
+ {
+   Temp_Control.PassangerCtrl_Front_R_Down = CONTROL_ON;
+ }
+ else
+ {
+   Temp_Control.PassangerCtrl_Front_R_Down = CONTROL_OFF;
+ }
+ output(Temp_Control);
+}
+
+on sysvar ControlSwitches::PassCtrl_Front_R_UP
+{
+  message ControlSwitches_Status Temp_Control;
+ if(@ControlSwitches::PassCtrl_Front_R_UP == CONTROL_ON
+  && @ControlSwitches::child_lock == CHILD_LOCK_OFF) 
+ {
+   Temp_Control.PassangerCtrl_Front_R_Up = CONTROL_ON;
+ }
+ else
+ {
+   Temp_Control.PassangerCtrl_Front_R_Up = CONTROL_OFF;
+ }
+ output(Temp_Control);
+}
+
+on sysvar ControlSwitches::PassCtrl_Rear_R_Down
+{
+  message ControlSwitches_Status Temp_Control;
+ if(@ControlSwitches::PassCtrl_Rear_R_Down == CONTROL_ON
+  && @ControlSwitches::child_lock == CHILD_LOCK_OFF) 
+ {
+   Temp_Control.PassangerCtrl_Rear_R_Down = CONTROL_ON;
+ }
+ else
+ {
+   Temp_Control.PassangerCtrl_Rear_R_Down = CONTROL_OFF;
+ }
+ output(Temp_Control);
+}
+
+on sysvar ControlSwitches::PassCtrl_Rear_R_UP
+{
+  message ControlSwitches_Status Temp_Control;
+ if(@ControlSwitches::PassCtrl_Rear_R_UP == CONTROL_ON
+  && @ControlSwitches::child_lock == CHILD_LOCK_OFF) 
+ {
+   Temp_Control.PassangerCtrl_Rear_R_Up = CONTROL_ON;
+ }
+ else
+ {
+   Temp_Control.PassangerCtrl_Rear_R_Up = CONTROL_OFF;
+ }
+ output(Temp_Control);
+}

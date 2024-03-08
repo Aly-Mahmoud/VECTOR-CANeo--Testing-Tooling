@@ -1,0 +1,89 @@
+﻿/*@!Encoding:65001*/
+includes
+{
+  
+}
+
+variables
+{
+  const SIGNAL_IN_RANE = 1;
+  const MESSAGE_RECIEVED = 1;
+  const ACTION_SUCCESFUL = 0;
+  long status;
+}
+
+ testCase TestTempEcuActivation()
+{
+  int result = 0;
+  testStep("Step 1: enable PowerSupply " ,"set Power Supply Voltaeg To 13");
+  @PowerSupply::volt = 13;
+ // testWaitForTimeout(200);
+//  result = testWaitForSignalInRange(tempStatusIndicator,0,3,1);
+//  if(result == SIGNAL_IN_RANE)
+//  {
+//    testStepPass("result 1:"," recievd signal tesmp idicator within valid range 0 ti 3");
+//  }
+  result = testWaitForMessage(temperatureStatus,250);
+  if(result == MESSAGE_RECIEVED)
+  {
+    testStepPass("result 1","Messahge temperatureStatus is recieved on the bus");
+  }else
+  {
+    testStepFail("result 1","message not recieved on the bus");
+  }
+  
+}
+testcase TestLockDoorActivation()
+{
+  int result = 0;
+  @PowerSupply::volt = 13;
+  testStep("step 1 : Door Lock Activation" , " Control BCm TO set Signal LOCK Door to activate");
+  @doorControl::lockDoor = 1;
+  result = testWaitForMessage(doorsStatus,50);
+  status = testValidateSignalMatch("TestLockDoorActivation",doorsStatus::lockStaus,1);
+  if(result == MESSAGE_RECIEVED)
+  {
+    if (status == ACTION_SUCCESFUL)
+    {
+      testStepPass("result 2","Door succesfully unlocked");
+    }
+    else
+    {
+      testStepFail("result 2","Door failed to unlock");
+    }
+  }else
+  {
+    testStepFail("result 2","message not recieved on the bus");
+  }
+}
+testcase TestockDoorDeactivation()
+{
+  int result = 0;
+  @PowerSupply::volt = 13;
+  testStep("step 1 : Door Lock DeaActivation" , " Control BCm TO set Signal LOCK Door to Deactivet");
+  @doorControl::lockDoor = 0;
+  result = testWaitForMessage(doorsStatus,250);
+  status = testValidateSignalMatch("TestockDoorDeactivation",doorsStatus::lockStaus,0);
+  if(result == MESSAGE_RECIEVED)
+  {
+    if (status == ACTION_SUCCESFUL)
+    {
+      testStepPass("result 2","Door succesfully locked");
+    }
+    else
+    {
+      testStepFail("result 2","Door failed to lock");
+    }
+  }else
+  {
+    testStepFail("result 2","message not recieved on the bus");
+  }
+}
+
+void MainTest()
+{
+  TestTempEcuActivation();
+  TestLockDoorActivation();
+  TestockDoorDeactivation();
+}
+

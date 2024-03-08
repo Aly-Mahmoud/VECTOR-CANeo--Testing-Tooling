@@ -1,0 +1,43 @@
+﻿/*@!Encoding:65001*/
+includes
+{
+  
+}
+
+variables
+{
+  const ENABLED = 1;
+  const DISABLED = 0;
+  int DoorsECUActivationstatus = ENABLED;
+  message doorsStatus doorsStatusMsg;
+}
+
+on message controlDoors
+{
+  if(DoorsECUActivationstatus == ENABLED)
+  {
+    message controlDoors controlDoors_Msg;
+    controlDoors_Msg = this;
+    if (controlDoors_Msg.activateDoorLocl == ENABLED)
+    {
+      doorsStatusMsg.lockStaus = 1;
+      output(doorsStatusMsg);
+    }
+    else
+    {
+      doorsStatusMsg.lockStaus = 0;
+      output(doorsStatusMsg); 
+    }
+  }
+
+  
+}
+
+on message ControlNetworlNode
+{
+  message ControlNetworlNode currentNetworkNodeMsg;
+  currentNetworkNodeMsg = This;
+  DoorsECUActivationstatus = currentNetworkNodeMsg.doorEcuControl;
+}
+
+

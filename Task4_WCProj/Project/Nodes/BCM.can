@@ -1,0 +1,92 @@
+﻿/*@!Encoding:65001*/
+includes
+{
+  
+}
+
+variables
+{
+  message BCM_NM_Message BCM_Awake;
+  message BCM_PWC_Control BCM_PWC_Control_Msg;
+  const SYSTEM_AWAKE = 1;
+  const CHILD_LOCK_ON = 1;
+  const CHILD_LOCK_OFF = 0;
+  const CONTROL_ON = 1;
+  const CONTROL_OFF = 0;
+  mstimer Auto_detect_FL;
+  int counter_FL = 0;
+
+}
+
+on sysvar Power::Power_On
+{
+  if (@Power::Power_On == 1)
+  {
+    BCM_Awake.NM_Awake = SYSTEM_AWAKE; 
+    output(BCM_Awake);
+  }
+}
+
+on message ControlSwitches_Status
+{
+  message ControlSwitches_Status Temp_control; //read
+  
+  message BCM_DashBoard_Control  Temp_Dash;    //write
+  
+  Temp_control = this;
+  
+  if(Temp_control.ChildLock == CHILD_LOCK_ON)
+  {
+    Temp_Dash.ChildLock_Led_Control = CONTROL_ON;
+  }
+  else
+  {
+    Temp_Dash.ChildLock_Led_Control = CONTROL_OFF;
+  }
+
+  if(Temp_control.DrvCtrl_Front_L_Down == CONTROL_ON)
+  {
+    counter_FL =0;
+    setTimer (Auto_detect_FL,50);
+  }
+}
+
+on timer Auto_detect_FL    // to check wiether it was a Auto or Manual (500ms delay) //Check for 1-PWC status (Fullyclosed- Fully opened) 2-POWERON
+{
+  message ControlSwitches_Status Temp_Switches_Status;    // Rx
+  
+  message BCM_PWC_Control        Temp_PWC_Control_Msg;    // Tx
+
+  
+  if (Temp_Switches_Status.DrvCtrl_Front_L_Down == CONTROL_ON)
+  {
+      counter_FL++;                              
+    
+    if (0 < counter_FL && counter_FL> 49 )  
+    {
+      Temp_PWC_Control_Msg.DrvCtrl_Front_L_Down = CONTROL_ON;
+       setTimer (Auto_detect_FL,50);  
+    }
+    
+    else if ( counter_FL >= 50 )
+    {
+      Temp_PWC_Control_Msg.DrvCtrl_Front_L_Down = CONTROL_OFF;
+      Temp_PWC_Control_Msg.DrvCtrl_Front_L_Auto = CONTROL_ON;
+    }
+      output (Temp_PWC_Control_Msg);
+  }
+
+}
+
+//  if(   Temp_control.DrvCtrl_Front_L_Down == CONTROL_ON
+//     || Temp_control.DrvCtrl_Front_L_Up == CONTROL_ON
+//     || Temp_control.DrvCtrl_Front_R_Down == CONTROL_ON
+//     || Temp_control.DrvCtrl_Front_R_Up == CONTROL_ON
+//     || Temp_control.PassangerCtrl_Front_R_Down == CONTROL_ON
+//     || Temp_control.PassangerCtrl_Front_R_Up == CONTROL_ON
+//     || Temp_control.PassangerCtrl_Rear_R_Down == CONTROL_ON
+//     || Temp_control.PassangerCtrl_Rear_R_Up == CONTROL_ON
+//    )
+//  {
+//    setTimer(Auto_detect_FL,500);
+//  }

@@ -1,0 +1,98 @@
+﻿/*@!Encoding:65001*/
+includes
+{
+  
+}
+
+variables
+{
+  const long CONTROL_TEMP_CYCLIC_TIME = 200;// ms
+  message can1.0x101 Control_Temp;
+  msTimer control_Temp_timer;
+  int tempSentByBCM;
+  int status_tempFlag;
+  message ControlNetworlNode currentControlNetworkNode;
+  const CONTRO_ON = 1;
+  const CONTROL_OFF = 0;
+  message ControlTemp currentControlTempMsg;
+   const  NORMAL_TEMP = 0;
+  const LOW_TEMP = 1;
+  const HIGH_TEMP = 2;
+  int modifiedTempAmount = 0;
+  int ControlTempDirection = 0;
+  const INCREASE = 1;
+  const DECREASE = 2 ;
+  const DO_NOTHING = 0;
+  int LockDoorActivation = 0;
+  msTimer DoorControlTimer;
+  message 0x100 doorControlMsg;
+  message controlDoors controlDoorMsg;
+  
+  
+}
+on timer control_Temp_timer
+{
+  currentControlTempMsg.tempModificationDirection = ControlTempDirection;
+  if(ControlTempDirection != DO_NOTHING)
+  {
+    currentControlTempMsg.modifiedTempDegree = modifiedTempAmount;
+    ControlTempDirection = DO_NOTHING;
+  }
+  output(currentControlTempMsg);
+  setTimer(control_Temp_timer,CONTROL_TEMP_CYCLIC_TIME);
+}
+
+on sysvar PowerSupply::volt
+{
+  if (@PowerSupply::volt==13)
+  {
+    currentControlNetworkNode.tempEcuControl = CONTRO_ON;
+    currentControlNetworkNode.doorEcuControl = CONTRO_ON;
+    output(currentControlNetworkNode);
+    setTimer(control_Temp_timer,CONTROL_TEMP_CYCLIC_TIME);
+  }
+}
+
+on sysvar doorControl::lockDoor
+{
+  
+  controlDoorMsg.activateDoorLocl = @doorControl::lockDoor;
+  output(controlDoorMsg);
+}
+
+
+
+on message temperatureStatus
+{
+  message temperatureStatus recentTempStatusMsg;
+  
+ // recentTempStatusMsg = this;
+  
+  if (this.tempStatusIndicator == HIGH_TEMP)
+  {
+    modifiedTempAmount = recentTempStatusMsg.tempDegree - 100;
+    ControlTempDirection = DECREASE;
+    
+  }else if(this.tempStatusIndicator == LOW_TEMP)
+  {
+    modifiedTempAmount = 40 - recentTempStatusMsg.tempDegree;
+    ControlTempDirection = INCREASE;
+  }else{
+    modifiedTempAmount = 0;
+    ControlTempDirection =  DO_NOTHING;
+  }
+  
+}
+
+on timer DoorControlTimer
+{
+  doorControlMsg.byte(0) = LockDoorActivation;
+  output(doorControlMsg);
+  setTimer(DoorControlTimer,200);
+}
+
+
+
+
+
+

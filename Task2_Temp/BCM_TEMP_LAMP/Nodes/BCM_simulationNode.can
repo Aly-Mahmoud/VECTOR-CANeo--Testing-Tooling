@@ -1,0 +1,70 @@
+﻿/*@!Encoding:65001*/
+includes
+{
+  
+}
+
+variables
+{
+  const long CONTROL_TEMP_CYCLIC_TIME = 200;// ms
+  message can1.0x101 Control_Temp;
+  msTimer control_Temp_timer;
+  int tempSentByBCM;
+  int status_tempFlag;
+  message ControlNetworkNode currentControlNetworkNode;
+  const CONTROL_ON = 1;
+  const CONTROL_OFF= 0;
+  message ControlTemp currentControlTempMsg;
+  const LOW_TEMP = 1;
+  const HIGH_TEMP = 2;
+  int modifiedTempAmount;
+  int ControlTempDirection;
+  const INCREASE = 1;
+  const DECREASE = 2; 
+  const DONOTHING= 3;
+}
+
+on timer control_Temp_timer
+{
+  currentControlTempMsg.tempModificationDirection = ControlTempDirection;
+  if(ControlTempDirection != DONOTHING)
+  {
+    currentControlTempMsg.modifiedTempDegree = modifiedTempAmount;
+  }
+  
+ output(currentControlTempMsg);
+  setTimer(control_Temp_timer,CONTROL_TEMP_CYCLIC_TIME);
+}
+
+on sysvar PowerSupply ::volt
+{
+  if (@PowerSupply::volt == 13)
+  {
+    currentControlNetworkNode.Temp_ECUControl = CONTROL_ON;
+    output(currentControlNetworkNode);
+    setTimer(control_Temp_timer,CONTROL_TEMP_CYCLIC_TIME);
+    
+  }
+}
+
+on message temperatureStatus
+{
+  message temperatureStatus recentTemperatureStatusMsg;
+  recentTemperatureStatusMsg = this;
+  
+  if (recentTemperatureStatusMsg.tempStatusIndicator == HIGH_TEMP)
+  {
+    modifiedTempAmount = recentTemperatureStatusMsg.tempDegree - 100;
+    ControlTempDirection = DECREASE;
+  }
+  else if (recentTemperatureStatusMsg.tempStatusIndicator == LOW_TEMP)
+  {
+    modifiedTempAmount = 40- recentTemperatureStatusMsg.tempDegree ;
+    ControlTempDirection = INCREASE;    
+  }
+  
+  else
+  {
+    modifiedTempAmount = recentTemperatureStatusMsg.tempDegree ;
+    ControlTempDirection = DONOTHING;    
+  }

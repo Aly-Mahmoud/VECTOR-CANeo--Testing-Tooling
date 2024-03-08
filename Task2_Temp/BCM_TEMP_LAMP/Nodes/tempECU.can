@@ -1,0 +1,113 @@
+﻿/*@!Encoding:65001*/
+includes
+{
+  
+}
+
+variables
+{
+  msTimer tempStatusMsgPeriodicTimer;
+  message temperatureStatus  tempStatusMsg;
+  const int TEMP_STATUS_MSG_PERIODICITY = 200;
+  const INVALID_TEMP = -1;
+  int usercurrentTemp =INVALID_TEMP ;
+  const  NORMAL_TEMP = 0;
+  const LOW_TEMP = 1;
+  const HIGH_TEMP = 2;
+  int randomTempCounter = 0;
+  const APPLY_RANDOM = 100;
+  int BCMcurrentTemp ;
+  const INCREASE_TEMP = 1;
+  const DECREASE_TEMP = 2;
+  const DO_NOTHING = 0;
+  const CONTROL_ON = 1;
+  const CONTROL_OFF = 0;
+  int tempECUStatus;
+}
+
+on timer tempStatusMsgPeriodicTimer
+{
+  if (tempECUStatus = CONTROL_ON)
+  {
+    //?
+  }
+  if(usercurrentTemp != INVALID_TEMP)
+  {
+    tempStatusMsg.tempDegree = usercurrentTemp;
+    usercurrentTemp = INVALID_TEMP;
+  }
+  if( randomTempCounter == APPLY_RANDOM)
+  {
+    sentRandomTemp();
+    randomTempCounter = 0;
+  }else
+  {
+    randomTempCounter++;
+  }
+  
+  
+  setStatusIndicator();
+  output(tempStatusMsg);
+  setTimer(tempStatusMsgPeriodicTimer,TEMP_STATUS_MSG_PERIODICITY);
+}
+on key 's'
+{
+  setTimer(tempStatusMsgPeriodicTimer,TEMP_STATUS_MSG_PERIODICITY);
+}
+
+
+void setStatusIndicator()
+{
+  if((tempStatusMsg.tempDegree > 40 ) && (tempStatusMsg.tempDegree < 100))
+  {
+    tempStatusMsg.tempStatusIndicator = NORMAL_TEMP;
+  }else if(tempStatusMsg.tempDegree< 40) 
+  {
+    tempStatusMsg.tempStatusIndicator = LOW_TEMP;
+  }else if (tempStatusMsg.tempDegree > 100)
+  {
+    tempStatusMsg.tempStatusIndicator = HIGH_TEMP;
+  }
+}
+
+on sysvar tempEcu::tempertaure
+{
+  usercurrentTemp = @tempEcu::tempertaure;
+}
+
+
+ void sentRandomTemp()
+{
+  dword temp;
+  temp =  random(254);
+  tempStatusMsg.tempDegree = temp;
+}
+
+on message ControlTemp
+{
+  message ControlTemp currentControlTempMsg;
+  currentControlTempMsg = this;
+  if (currentControlTempMsg.tempModificationDirection == DECREASE_TEMP)
+  {
+    tempStatusMsg.tempDegree = tempStatusMsg.tempDegree - currentControlTempMsg.modifiedTempDegree;
+  }else if (currentControlTempMsg.tempModificationDirection == INCREASE_TEMP)
+  {
+      tempStatusMsg.tempDegree = tempStatusMsg.tempDegree + currentControlTempMsg.modifiedTempDegree;
+  }
+}
+
+
+on message ControlNetworkNode //on 0x300
+{
+  message ControlNetworkNode ControlNetworkNodeCurrentMsg;
+  ControlNetworkNodeCurrentMsg = this;
+  if(ControlNetworkNodeCurrentMsg.Temp_ECUControl == CONTROL_ON)
+  {
+    tempECUStatus = CONTROL_ON;
+    setTimer(tempStatusMsgPeriodicTimer,TEMP_STATUS_MSG_PERIODICITY);
+  }
+  else
+  {
+    canceltimer(tempStatusMsgPeriodicTimer);
+  }
+}
